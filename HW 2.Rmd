@@ -1,0 +1,75 @@
+---
+title: "HW 2 Student"
+author: "Andy Ackerman, Razmin Bari"
+date: "09/27/2024"
+output: 
+  html_document:
+    number_sections: true
+---
+
+This homework is meant to illustrate the methods of classification algorithms as well as their potential pitfalls.  In class, we demonstrated K-Nearest-Neighbors using the `iris` dataset.  Today I will give you a different subset of this same data, and you will train a KNN classifier.  
+
+```{r, echo = FALSE}
+set.seed(123)
+library(class)
+
+df <- data(iris) 
+
+normal <-function(x) {
+  (x -min(x))/(max(x)-min(x))   
+}
+
+iris_norm <- as.data.frame(lapply(iris[,c(1,2,3,4)], normal))
+
+subset <- c(1:45, 58, 60:70, 82, 94, 110:150)
+iris_train <- iris_norm[subset,]
+iris_test <- iris_norm[-subset,]
+
+iris_target_category <- iris[subset,5]
+iris_test_category <- iris[-subset,5]
+
+
+```
+
+#
+Above, I have given you a training-testing partition.  Train the KNN with $K = 5$ on the training data and use this to classify the 50 test observations.  Once you have classified the test observations, create a contingency table -- like we did in class -- to evaluate which observations your algorithm is misclassifying.   
+
+```{r}
+set.seed(123)
+pr <- knn(iris_train,iris_test,cl=iris_target_category,k=5)
+tab <- table(pr,iris_test_category)
+
+tab
+
+```
+
+#
+
+Discuss your results.  If you have done this correctly, you should have a classification error rate that is roughly 20% higher than what we observed in class.  Why is this the case? In particular run a summary of the `iris_test_category` as well as `iris_target_category` and discuss how this plays a role in your answer.  
+
+```{r}
+accuracy <- function(x){
+  sum(diag(x)/(sum(rowSums(x)))) * 100
+}
+
+accuracy(tab)
+
+summary(iris_target_category)
+summary(iris_test_category)
+
+```
+There is class imbalance in the training subset to begin with. There are less than 50% of the versicolor species compared to the other two. On top of that, the distribution of the species in the training subset is not similar to the distribution in the testing subset; this is a case of the training subset not being representative of the testing subset.
+
+
+#
+
+Choice of $K$ can also influence this classifier.  Why would choosing $K = 6$ not be advisable for this data? 
+
+The $K$ value of 6 is divisible by the number of classes in this case (3). This means that if there is a equal number of each class within the selected neighbors for a certain object, the final classification will be based entirely on chance instead of any logical decision. This is because the proximity of any of the neighbors already selected is not taken into account in the k-nn model; only the counts of each class type matter at this stage.
+
+#
+
+Build a github repository to store your homework assignments.  Share the link in this file.  
+
+https://github.com/razmin19/STOR-390-Fall2024.git
+
