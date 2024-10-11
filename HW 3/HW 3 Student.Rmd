@@ -32,9 +32,8 @@ x[1:100,]=x[1:100,]+2
 x[101:150,]=x[101:150,]-2
 y=c(rep(1,150),rep(2,50))
 dat=data.frame(x=x,y=as.factor(y))
+
 plot(x, col=y)
-
-
 ```
 
 
@@ -51,8 +50,6 @@ test <- dat[-train_ind, ]
 svmfit = svm(y~., data = train, kernel = "radial", gamma = 1, cost = 1, scale = FALSE)
 
 plot(svmfit, train)
-
-
 ```
 
 ##
@@ -63,17 +60,13 @@ Notice that the above decision boundary is decidedly non-linear.  It seems to pe
 svmfit2 = svm(y~., data = train, kernel = "radial", gamma = 1, cost = 10000, scale = FALSE)
 
 plot(svmfit2, train)
-
-
 ```
 
 ##
 
 It would appear that we are better capturing the training data, but comment on the dangers (if any exist), of such a model. 
 
-*Student Answer* Such a model is less generalizable because the decision boundary is 
-amorphous. Additionally, since the decision boundary is more complex, data points
-near the boundary are more likely to be misclassified.
+*Student Answer* Such a model is less generalizable because the decision boundary is amorphous. Additionally, since the decision boundary is more complex, data points near the boundary are more likely to be misclassified.
 
 ##
 
@@ -82,8 +75,7 @@ Create a confusion matrix by using this svm to predict on the current testing pa
 ```{r}
 table(true=dat[-train_ind,"y"], pred=predict(svmfit2, newdata=dat[-train_ind,]))
 ```
-There is a disparity as true class 1 values are more likely to be mis-classified than class 
-2 values: 17 vs 3.
+There is a disparity as true class 1 values are more likely to be mis-classified than class 2 values: 17 vs 3.
 
 ##
 
@@ -91,15 +83,10 @@ Is this disparity because of imbalance in the training/testing partition?  Find 
 
 ```{r}
 table(true=dat[train_ind,"y"])
-
 table(true=dat[,"y"])
-
 ```
 
-*Student Response* The training data set seems broadly representative as 29% of the objects
-are true class 2 values that make up only 25% of the whole data. Minority classes have the
-tendency to affect the separating boundary more however, so it may be possible the slight
-over-representation of class 2 in the training set may be causing disparity in prediction.
+*Student Response* The training data set seems broadly representative as 29% of the objects are true class 2 values that make up only 25% of the whole data. Minority classes have the tendency to affect the separating boundary more however, so it may be possible the slight over-representation of class 2 in the training set may be causing disparity in prediction.
 
 
 ##
@@ -107,7 +94,6 @@ over-representation of class 2 in the training set may be causing disparity in p
 Let's try and balance the above to solutions via cross-validation.  Using the `tune` function, pass in the training data, and a list of the following cost and $\gamma$ values: {0.1, 1, 10, 100, 1000} and {0.5, 1,2,3,4}.  Save the output of this function in a variable called `tune.out`.  
 
 ```{r}
-
 set.seed(1)
 
 cost_values <- c(0.1, 1, 10, 100, 1000)
@@ -116,7 +102,6 @@ gamma_values <- c(0.5, 1, 2, 3, 4)
 tune.out <- tune(svm, y ~ ., data = train, ranges = list(cost = cost_values, 
                                                          gamma = gamma_values),
                  kernel = "radial", scale = FALSE)
-
 ```
 
 I will take `tune.out` and use the best model according to error rate to test on our data.  I will report a confusion matrix corresponding to the 100 predictions.  
@@ -130,20 +115,15 @@ table(true=dat[-train_ind,"y"], pred=predict(tune.out$best.model, newdata=dat[-t
 
 Comment on the confusion matrix.  How have we improved upon the model in question 2 and what qualifications are still necessary for this improved model.  
 
-*Student Response* The disparity identified before is decidedly less pronounced now, which
-means the model is more accurate. However, the minority class (class 2) still is somewhat
-over-represented, and true class 1 values are still the more mis-classified than class 2
-values.
+*Student Response* The disparity identified before is decidedly less pronounced now, which means the model is more accurate. However, the minority class (class 2) still is somewhat over-represented, and true class 1 values are still the more mis-classified than class 2 values.
 
 # 
 Let's turn now to decision trees.  
 
 ```{r}
-
 library(kmed)
 data(heart)
 library(tree)
-
 ```
 
 ## 
@@ -154,11 +134,10 @@ The response variable is currently a categorical variable with four levels.  Con
 library(tidyverse)
 
 table(heart$class)
+
 dat2 <- heart %>%
   mutate(class_bin = as.factor(ifelse(class == 0, 0, 1))) %>%
   select(-class)
-str(dat2)
-
 ```
 
 ## 
@@ -166,18 +145,13 @@ str(dat2)
 Train a classification tree on a 240 observation training subset (using the seed I have set for you).  Plot the tree.  
 
 ```{r}
-library(rpart.plot)
-
 set.seed(101)
 
 train_ind2 <- sample(1:nrow(dat2), 240)
+heart.tree = tree(class_bin ~ ., dat2, subset = train_ind2)
 
-heart.tree <- rpart(class_bin ~ ., data = dat2[train_ind2, ], method = "class")
-
-par(xpd = NA)
-
-rpart.plot(heart.tree)
-
+plot(heart.tree)
+text(heart.tree, pretty=0)
 ```
 
 
@@ -189,6 +163,8 @@ Use the trained model to classify the remaining testing points.  Create a confus
 tree.pred = predict(heart.tree, dat2[-train_ind2, ], type="class")
 with(dat2[-train_ind2, ], table(tree.pred, class_bin))
 
+(8+3)/(28+3+8+18)
+# Classification error rate = 0.19
 ```
 
 ##  
@@ -198,6 +174,15 @@ Above we have a fully grown (bushy) tree.  Now, cross validate it using the `cv.
 ```{r}
 set.seed(101)
 
+cv.hearttree <- cv.tree(heart.tree, FUN = prune.misclass)
+# prune.misclass --> classification error rate
+str(cv.hearttree)
+
+plot(cv.hearttree$size, cv.hearttree$dev, type="b")
+
+prune.hearttree <- prune.misclass(heart.tree, best = 4)
+plot(prune.hearttree)
+text(prune.hearttree, pretty=0)
 ```
 
 
@@ -205,10 +190,10 @@ set.seed(101)
 
 Discuss the trade-off in accuracy and interpretability in pruning the above tree. 
 
-*Student Input *
+*Student Input * A full tree prior to pruning is very accurate but only on the training set. Pruning reduces the risk of overfitting on the training data, which causes generalizability to increase and potentially leads to better prediction accuracy. Pruning also increases interpretability as the branches that are the most important in predicting the outcome variable are the ones still left in the tree.
 
 ## 
 
 Discuss the ways a decision tree could manifest algorithmic bias.  
 
-*Student Answer*
+*Student Answer* In the case that pruning has been done, it is worth noting that sometimes branches are removed simply by choosing the majority class label from the consolidated branches. Hence, if a protected class is not specified as such, disparity may be introduced in the model. A decision tree based on less than representative data across a protected class will also be highly biased.
