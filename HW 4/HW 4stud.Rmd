@@ -3,7 +3,7 @@ title: "HW 4"
 author: "Razmin Bari"
 date: "10/28/2024"
 output: 
-  html_document:
+  pdf_document:
     number_sections: true
 ---
 
