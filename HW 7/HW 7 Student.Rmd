@@ -3,7 +3,7 @@ title: "HW 7"
 author: "Razmin Bari"
 date: "12/3/2024"
 output: 
-  html_document:
+  pdf_document:
     number_sections: true
 ---
 
@@ -21,7 +21,7 @@ I want you to generalize this result for a potentially biased coin.  That is, fo
 #
 Next, show that this expression reduces to our result from class in the special case where $\theta = \frac{1}{2}$.
 
-**Substituting $\theta$ with $\frac{1}{2}:**
+**Substituting $\theta$ with $\frac{1}{2}$:**
 
 **$\hat{P} = \frac{\hat{\pi}-(1-\frac{1}{2})\frac{1}{2}}{\frac{1}{2}}$**
 
